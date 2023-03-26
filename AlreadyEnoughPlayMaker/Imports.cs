@@ -19,3 +19,7 @@ global using Osmi;
 global using Osmi.Utils;
 
 global using UnityEngine;
+
+global using AlreadyEnoughPlayMaker.Utils;
+
+global using Lang = Language.Language;

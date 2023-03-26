@@ -3,7 +3,7 @@ using AlreadyEnoughPlayMaker.HookProviders;
 namespace AlreadyEnoughPlayMaker;
 
 [PublicAPI]
-public sealed class AlreadyEnoughPlayMaker : Mod {
+public sealed partial class AlreadyEnoughPlayMaker : Mod, IGlobalSettings<GlobalSettings> {
 	public static AlreadyEnoughPlayMaker Instance { get; private set; } = null!;
 
 	public static Lazy<string> version = AssemblyUtil
@@ -14,6 +14,11 @@ public sealed class AlreadyEnoughPlayMaker : Mod {
 #endif
 
 	public override string GetVersion() => version.Value;
+
+	public override string GetMenuButtonText() =>
+		"ModName".Localize() + ' ' + Lang.Get("MAIN_OPTIONS", "MainMenu");
+
+	internal Dictionary<string, HookProvider> providers;
 
 	public AlreadyEnoughPlayMaker() {
 		Instance = this;
@@ -32,4 +37,8 @@ public sealed class AlreadyEnoughPlayMaker : Mod {
 
 		Log($"Successfully initialized {count} hooks in {Time.realtimeSinceStartup - startTime}s");
 	}
+
+	public GlobalSettings GlobalSettings { get; private set; } = new();
+	public void OnLoadGlobal(GlobalSettings s) => GlobalSettings = s;
+	public GlobalSettings OnSaveGlobal() => GlobalSettings;
 }

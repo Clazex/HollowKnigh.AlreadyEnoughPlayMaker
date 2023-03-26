@@ -1,0 +1,13 @@
+{
+	"ModName": "Already Enough PlayMaker",
+	"Providers/BetterDelayedEventUpdate": "Better Delayed Event Update",
+	"Providers/BetterDelayedEventUpdate/Desc": "",
+	"Providers/DirectAccessTime": "Direct Access Time",
+	"Providers/DirectAccessTime/Desc": "",
+	"Providers/InitActionsOnce": "Init Actions Onces",
+	"Providers/InitActionsOnce/Desc": "This has compatibility issues with some mods, turn it off in case of errors",
+	"Providers/NoLoopCount": "No Loop Count",
+	"Providers/NoLoopCount/Desc": "",
+	"Providers/ReplaceForeach": "Replace Foreach",
+	"Providers/ReplaceForeach/Desc": ""
+}

@@ -1,0 +1,13 @@
+{
+	"ModName": "AEPM",
+	"Providers/BetterDelayedEventUpdate": "更好的延迟事件更新",
+	"Providers/BetterDelayedEventUpdate/Desc": "",
+	"Providers/DirectAccessTime": "直接访问时间",
+	"Providers/DirectAccessTime/Desc": "",
+	"Providers/InitActionsOnce": "Action 仅初始化一次",
+	"Providers/InitActionsOnce/Desc": "本功能与一些模组有兼容问题，如有错误请关闭",
+	"Providers/NoLoopCount": "移除循环计数",
+	"Providers/NoLoopCount/Desc": "",
+	"Providers/ReplaceForeach": "替换 Foreach",
+	"Providers/ReplaceForeach/Desc": ""
+}

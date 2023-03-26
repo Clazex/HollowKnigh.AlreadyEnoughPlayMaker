@@ -49,11 +49,7 @@ internal sealed class ReplaceForeach : HookProvider {
 
 
 	private static void BroadcastEvent(Fsm self, FsmEvent fsmEvent, bool excludeSelf, FsmEventData eventDataSentByInfo) {
-		List<PlayMakerFSM> list = PlayMakerFSM.FsmList;
-		int count = list.Count;
-
-		for (int i = 0; i < count; i++) {
-			PlayMakerFSM pmfsm = list[i];
+		foreach (PlayMakerFSM pmfsm in PlayMakerFSM.FsmList.ToArray()) {
 			Fsm fsm = pmfsm.Fsm;
 
 			if (fsm != null && (!excludeSelf || fsm != self) && pmfsm != null) {
@@ -67,11 +63,7 @@ internal sealed class ReplaceForeach : HookProvider {
 			return;
 		}
 
-		List<PlayMakerFSM> fsmList = PlayMakerFSM.FsmList;
-		int count = fsmList.Count;
-
-		for (int i = 0; i < count; i++) {
-			PlayMakerFSM pmfsm = fsmList[i];
+		foreach (PlayMakerFSM pmfsm in go.GetComponents<PlayMakerFSM>()) {
 			Fsm fsm = pmfsm.Fsm;
 
 			if ((!excludeSelf || fsm != self) && pmfsm != null && pmfsm.gameObject == go) {
@@ -81,6 +73,7 @@ internal sealed class ReplaceForeach : HookProvider {
 
 		if (sendToChildren) {
 			// Transform implements the non-generic IEnumerator
+			// so it won't matter using foreach here
 			foreach (Transform child in go.transform) {
 				BroadcastEventToGameObject(
 					self,

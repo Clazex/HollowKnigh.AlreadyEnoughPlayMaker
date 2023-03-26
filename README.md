@@ -1,6 +1,6 @@
 # [Already Enough PlayMaker](https://github.com/Clazex/HollowKnight.AlreadyEnoughPlayMaker)
 
-A Hollow Knight optimization mod.
+A Hollow Knight optimization mod for PlayMaker FSMs.
 
 Compatible with `Hollow Knight` 1.5.
 

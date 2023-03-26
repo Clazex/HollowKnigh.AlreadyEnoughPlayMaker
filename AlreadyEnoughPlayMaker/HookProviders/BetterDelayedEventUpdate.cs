@@ -2,11 +2,12 @@ using Osmi.Utils.Tap;
 
 namespace AlreadyEnoughPlayMaker.HookProviders;
 
-internal sealed class BetterDelayedEventUpdate : IHookProvider {
-	public ICollection<ILHook> ApplyHooks() => new ILHook[] {
+internal sealed class BetterDelayedEventUpdate : HookProvider {
+	internal override IReadOnlyCollection<ILHook> CreateHooks() => new ILHook[] {
 		new(
-			typeof(Fsm).GetMethod(nameof(Fsm.UpdateDelayedEvents)),
-			OptimizeUpdateDelayedEvents
+			Info.OfMethod<Fsm>(nameof(Fsm.UpdateDelayedEvents)),
+			OptimizeUpdateDelayedEvents,
+			new() { ManualApply = true }
 		)
 	};
 
@@ -23,42 +24,35 @@ internal sealed class BetterDelayedEventUpdate : IHookProvider {
 	//	 }
 	// }
 	//
-	private static void OptimizeUpdateDelayedEvents(ILContext il) {
-		FieldInfo fldDelayedEvents = typeof(Fsm).GetField(
-			 "delayedEvents",
-			BindingFlags.Instance | BindingFlags.NonPublic
-		)!;
-		FieldInfo fldUpdateEvents = typeof(Fsm).GetField(
-			 "updateEvents",
-			 BindingFlags.Instance | BindingFlags.NonPublic
-		)!;
-		ConstructorInfo ctorList = typeof(List<DelayedEvent>)
-			.GetConstructor(Type.EmptyTypes)!;
+	private static void OptimizeUpdateDelayedEvents(ILContext il) => new ILCursor(il)
+		.Goto(0)
+		.RemoveUntil(i => i.MatchLdcI4(out _))
 
-		new ILCursor(il).Goto(0)
-			.RemoveUntil(i => i.MatchLdcI4(out _))
+		.Emit(OpCodes.Ldarg_0) // this
+		.Emit(OpCodes.Ldarg_0) // this
+		.Emit(OpCodes.Ldfld, Info.OfField<Fsm>("delayedEvents"))
+		.Emit(OpCodes.Stfld, Info.OfField<Fsm>("updateEvents"))
 
-			.Emit(OpCodes.Ldarg_0) // this
-			.Emit(OpCodes.Ldarg_0) // this
-			.Emit(OpCodes.Ldfld, fldDelayedEvents)
-			.Emit(OpCodes.Stfld, fldUpdateEvents)
+		.Emit(OpCodes.Ldarg_0) // this
+		.Emit(OpCodes.Newobj, Info.OfConstructor(
+			"mscorlib",
+			"System.Collections.Generic.List`1<PlayMaker|HutongGames.PlayMaker.DelayedEvent>"
+		))
+		.Emit(OpCodes.Stfld, Info.OfField<Fsm>("delayedEvents"))
 
-			.Emit(OpCodes.Ldarg_0) // this
-			.Emit(OpCodes.Newobj, ctorList)
-			.Emit(OpCodes.Stfld, fldDelayedEvents)
+		.GotoNext(i => i.MatchBrfalse(out _))
+		.Tap(cur => cur.Next.OpCode = OpCodes.Brtrue_S)
 
-			.GotoNext(i => i.MatchBrfalse(out _))
-			.Tap(cur => cur.Next.OpCode = OpCodes.Brtrue_S)
+		.GotoNext(i => i.MatchLdfld(out _))
+		.Tap(cur => cur.Next.Operand = Info.OfField<Fsm>("delayedEvents"))
 
-			.GotoNext(i => i.MatchLdfld(out _))
-			.Tap(cur => cur.Next.Operand = fldDelayedEvents)
+		.GotoNext(MoveType.After, i => i.MatchBlt(out _))
+		.RemoveUntilEnd()
 
-			.GotoNext(MoveType.After, i => i.MatchBlt(out _))
-			.RemoveUntilEnd()
-
-			.Emit(OpCodes.Ldarg_0) // this
-			.Emit(OpCodes.Newobj, ctorList)
-			.Emit(OpCodes.Stfld, fldUpdateEvents)
-			.Discard();
-	}
+		.Emit(OpCodes.Ldarg_0) // this
+		.Emit(OpCodes.Newobj, Info.OfConstructor(
+			"mscorlib",
+			"System.Collections.Generic.List`1<PlayMaker|HutongGames.PlayMaker.DelayedEvent>"
+		))
+		.Emit(OpCodes.Stfld, Info.OfField<Fsm>("updateEvents"));
 }

@@ -1,12 +1,10 @@
 namespace AlreadyEnoughPlayMaker.HookProviders;
 
-internal sealed class InitActionsOnce : IHookProvider {
-	public ICollection<ILHook> ApplyHooks() {
+internal sealed class InitActionsOnce : HookProvider {
+	internal override IReadOnlyCollection<ILHook> CreateHooks() {
 		List<ILHook> hooks = new();
 
-		MethodInfo methodInit = typeof(FsmStateAction).GetMethod(
-			nameof(FsmStateAction.Init)
-		)!;
+		MethodInfo methodInit = Info.OfMethod<FsmStateAction>(nameof(FsmStateAction.Init));
 
 		foreach (
 			MethodInfo mi in typeof(FsmState).GetMethods(
@@ -33,21 +31,28 @@ internal sealed class InitActionsOnce : IHookProvider {
 				) {
 					_ = cursor.GotoPrev().GotoPrev().Remove().Remove().Remove();
 				}
-			}));
+			}, new() { ManualApply = true }));
 		}
 
 		hooks.Add(new(
-			typeof(ActionData).GetMethod(nameof(ActionData.LoadActions)),
-			EnsureActionsInit
+			Info.OfMethod<ActionData>(nameof(ActionData.LoadActions)),
+			EnsureActionsInit,
+			new() { ManualApply = true }
 		));
 
 		return hooks;
 	}
 
+	internal override bool DefaultEnabled => false;
+
 	private static void EnsureActionsInit(ILContext il) => new ILCursor(il)
 		.GotoEnd()
 		.Emit(OpCodes.Ldarg_1) // state
-		.EmitStaticMethodCall(InitActions);
+		.Emit(OpCodes.Call, Info.OfMethod(
+			nameof(AlreadyEnoughPlayMaker),
+			"AlreadyEnoughPlayMaker.HookProviders.InitActionsOnce",
+			nameof(InitActions)
+		));
 
 	private static FsmStateAction[] InitActions(FsmStateAction[] actions, FsmState state) {
 		foreach (FsmStateAction action in actions) {

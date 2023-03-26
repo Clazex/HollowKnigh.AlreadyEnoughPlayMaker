@@ -1,12 +1,20 @@
 namespace AlreadyEnoughPlayMaker.HookProviders;
 
-internal sealed class DirectAccessTime : IHookProvider {
-	public ICollection<ILHook> ApplyHooks() => new ILHook[] {
-		new(typeof(Fsm).GetMethod(nameof(Fsm.Update)), OptimizeFsmUpdate),
+internal sealed class DirectAccessTime : HookProvider {
+	internal override IReadOnlyCollection<ILHook> CreateHooks() => new ILHook[] {
 		new(
-			typeof(FsmTime).GetProperty(nameof(FsmTime.RealtimeSinceStartup))!
-				.GetMethod,
-			OptimizeFsmTimeRealtimeSinceStartupGet
+			Info.OfMethod<Fsm>(nameof(Fsm.Update)),
+			OptimizeFsmUpdate,
+			new() { ManualApply = true }
+		),
+		new(
+			Info.OfPropertyGet(
+				"PlayMaker",
+				 "HutongGames.PlayMaker.FsmTime",
+				 nameof(FsmTime.RealtimeSinceStartup)
+			),
+			OptimizeFsmTimeRealtimeSinceStartupGet,
+			new() { ManualApply = true }
 		)
 	};
 
@@ -17,7 +25,10 @@ internal sealed class DirectAccessTime : IHookProvider {
 		.RemoveAll()
 		.Emit(
 			OpCodes.Call,
-			typeof(Time).GetProperty(nameof(Time.realtimeSinceStartup))!
-				.GetMethod
+			Info.OfPropertyGet(
+				"UnityEngine.CoreModule",
+				"UnityEngine.Time",
+				nameof(Time.realtimeSinceStartup)
+			)
 		);
 }

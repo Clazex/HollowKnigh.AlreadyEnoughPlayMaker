@@ -15,6 +15,7 @@ global using MonoMod.Cil;
 global using MonoMod.RuntimeDetour;
 global using MonoMod.Utils;
 
+global using Osmi;
 global using Osmi.Utils;
 
 global using UnityEngine;

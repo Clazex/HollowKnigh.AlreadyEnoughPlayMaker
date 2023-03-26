@@ -1,26 +1,19 @@
 namespace AlreadyEnoughPlayMaker.HookProviders;
 
-internal sealed class ReplaceForeach : IHookProvider {
-	public ICollection<ILHook> ApplyHooks() => new ILHook[] {
+internal sealed class ReplaceForeach : HookProvider {
+	internal override IReadOnlyCollection<ILHook> CreateHooks() => new ILHook[] {
 		new(
-			typeof(Fsm).GetMethod(
-				nameof(Fsm.BroadcastEvent),
-				new[] { typeof(FsmEvent), typeof(bool) }
-			),
-			OptimizeBroadcastEvent
+			Info.OfMethod<Fsm>(nameof(Fsm.BroadcastEvent), "FsmEvent, Boolean"),
+			OptimizeBroadcastEvent,
+			new() { ManualApply = true }
 		),
 		new(
-			typeof(Fsm).GetMethod(
+			Info.OfMethod<Fsm>(
 				nameof(Fsm.BroadcastEventToGameObject),
-				new[] {
-					typeof(GameObject),
-					typeof(FsmEvent),
-					typeof(FsmEventData),
-					typeof(bool),
-					typeof(bool)
-				}
+				"GameObject, FsmEvent, FsmEventData, Boolean, Boolean"
 			),
-			OptimizeBroadcastEventToGameObject
+			OptimizeBroadcastEventToGameObject,
+			new() { ManualApply = true }
 		)
 	};
 
@@ -32,12 +25,13 @@ internal sealed class ReplaceForeach : IHookProvider {
 		.Emit(OpCodes.Ldarg_2) // excludeSelf
 		.Emit(
 			OpCodes.Call,
-			  typeof(Fsm).GetMethod(
-				"GetEventDataSentByInfo",
-				BindingFlags.Static | BindingFlags.NonPublic
-			)
+			Info.OfMethod<Fsm>("GetEventDataSentByInfo")
 		)
-		.EmitStaticMethodCall(BroadcastEvent);
+		.Emit(OpCodes.Call, Info.OfMethod(
+			"AlreadyEnoughPlayMaker",
+			"AlreadyEnoughPlayMaker.HookProviders.ReplaceForeach",
+			nameof(BroadcastEvent)
+		));
 
 	private static void OptimizeBroadcastEventToGameObject(ILContext il) => il
 		.RemoveAll()
@@ -47,7 +41,11 @@ internal sealed class ReplaceForeach : IHookProvider {
 		.Emit(OpCodes.Ldarg_3) // eventData
 		.Emit(OpCodes.Ldarg, 4) // sendToChildren
 		.Emit(OpCodes.Ldarg, 5) // excludeSelf
-		.EmitStaticMethodCall(BroadcastEventToGameObject);
+		.Emit(OpCodes.Call, Info.OfMethod(
+			"AlreadyEnoughPlayMaker",
+			"AlreadyEnoughPlayMaker.HookProviders.ReplaceForeach",
+			nameof(BroadcastEventToGameObject)
+		));
 
 
 	private static void BroadcastEvent(Fsm self, FsmEvent fsmEvent, bool excludeSelf, FsmEventData eventDataSentByInfo) {
